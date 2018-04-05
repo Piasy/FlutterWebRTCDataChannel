@@ -1,0 +1,49 @@
+group 'com.github.piasy.webrtcdatachannel'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        maven {
+            url  "https://google.bintray.com/webrtc"
+        }
+        google()
+        jcenter()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        minSdkVersion 16
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
+dependencies {
+    api 'org.webrtc:google-webrtc:1.0.22672'
+
+    api files('libs/autobanh.jar')
+}

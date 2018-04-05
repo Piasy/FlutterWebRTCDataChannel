@@ -1,0 +1,25 @@
+PODS:
+  - Flutter (1.0.0)
+  - GoogleWebRTC (1.1.22642)
+  - webrtc_data_channel (0.0.1):
+    - Flutter
+    - GoogleWebRTC (>= 1.1.22642)
+
+DEPENDENCIES:
+  - Flutter (from `Pods/.symlinks/flutter/ios`)
+  - webrtc_data_channel (from `Pods/.symlinks/plugins/webrtc_data_channel/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Pods/.symlinks/flutter/ios
+  webrtc_data_channel:
+    :path: Pods/.symlinks/plugins/webrtc_data_channel/ios
+
+SPEC CHECKSUMS:
+  Flutter: 9d0fac939486c9aba2809b7982dfdbb47a7b0296
+  GoogleWebRTC: 47a2c664862cd2181f55a37a49047855c353a4e2
+  webrtc_data_channel: 57989d7a00761c3fc1ac6762665de45379522f1f
+
+PODFILE CHECKSUM: d76c19a85fb9cbf1e6bc37388fe47d013b210144
+
+COCOAPODS: 1.4.0
