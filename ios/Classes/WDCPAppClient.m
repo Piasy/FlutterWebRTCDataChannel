@@ -123,6 +123,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
                      roomId:roomId
           completionHandler:^(ARDJoinResponse* response, NSError* error) {
               WDCPAppClient* strongSelf = weakSelf;
+              if (!strongSelf) {
+                  return;
+              }
+
               if (error) {
                   [strongSelf->_delegate appClient:strongSelf didError:error];
                   return;
@@ -132,7 +136,9 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
               if (joinError) {
                   RTCLogError(@"Failed to join room:%@ on room server.",
                               roomId);
-                  [strongSelf disconnect];
+                  // stay the same behavior with Android, just fire error event,
+                  // don't disconnect.
+                  //[strongSelf disconnect];
                   [strongSelf->_delegate appClient:strongSelf
                                           didError:joinError];
                   return;
@@ -232,8 +238,7 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
         case kARDSignalingChannelStateClosed:
         case kARDSignalingChannelStateError:
             // TODO(tkchin): reconnection scenarios. Right now we just
-            // disconnect
-            // completely if the websocket connection fails.
+            // disconnect completely if the websocket connection fails.
             [self disconnect];
             break;
     }
@@ -259,6 +264,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
     __weak WDCPAppClient* weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         WDCPAppClient* strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
         [strongSelf->_delegate appClient:strongSelf
                 didChangeConnectionState:newState];
     });
@@ -324,6 +333,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
     __weak WDCPAppClient* weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         WDCPAppClient* strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
         if (error) {
             RTCLogError(@"Failed to create session description. Error: %@",
                         error);
@@ -339,11 +352,15 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
             [strongSelf->_delegate appClient:self didError:sdpError];
             return;
         }
-        
+
         [strongSelf->_peerConnection
             setLocalDescription:sdp
               completionHandler:^(NSError* error) {
                   WDCPAppClient* strongSelf2 = weakSelf;
+                  if (!strongSelf2) {
+                      return;
+                  }
+
                   [strongSelf2 peerConnection:strongSelf2->_peerConnection
                       didSetSessionDescriptionWithError:error];
               }];
@@ -358,6 +375,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
     __weak WDCPAppClient* weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         WDCPAppClient* strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
         if (error) {
             RTCLogError(@"Failed to set session description. Error: %@", error);
             [self disconnect];
@@ -383,6 +404,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
                    completionHandler:^(RTCSessionDescription* sdp,
                                        NSError* error) {
                        WDCPAppClient* strongSelf2 = weakSelf;
+                       if (!strongSelf2) {
+                           return;
+                       }
+
                        [strongSelf2 peerConnection:strongSelf2->_peerConnection
                            didCreateSessionDescription:sdp
                                                  error:error];
@@ -422,6 +447,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
         requestServersWithURL:iceServerUrl
             completionHandler:^(NSArray* turnServers, NSError* error) {
                 WDCPAppClient* strongSelf = weakSelf;
+                if (!strongSelf) {
+                    return;
+                }
+
                 if (error) {
                     RTCLogError("Error retrieving TURN servers: %@",
                                 error.localizedDescription);
@@ -470,6 +499,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
             offerForConstraints:[self defaultOfferConstraints]
               completionHandler:^(RTCSessionDescription* sdp, NSError* error) {
                   WDCPAppClient* strongSelf = weakSelf;
+                  if (!strongSelf) {
+                      return;
+                  }
+
                   [strongSelf peerConnection:strongSelf->_peerConnection
                       didCreateSessionDescription:sdp
                                             error:error];
@@ -521,6 +554,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
                 setRemoteDescription:description
                    completionHandler:^(NSError* error) {
                        WDCPAppClient* strongSelf = weakSelf;
+                       if (!strongSelf) {
+                           return;
+                       }
+
                        [strongSelf peerConnection:strongSelf->_peerConnection
                            didSetSessionDescriptionWithError:error];
                    }];
@@ -560,6 +597,10 @@ static int64_t const kWDCPAppClientRtcEventLogMaxSizeInBytes = 5e6;  // 5 MB.
                      clientId:_clientId
             completionHandler:^(ARDMessageResponse* response, NSError* error) {
                 WDCPAppClient* strongSelf = weakSelf;
+                if (!strongSelf) {
+                    return;
+                }
+
                 if (error) {
                     [strongSelf->_delegate appClient:strongSelf didError:error];
                     return;

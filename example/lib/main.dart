@@ -1,57 +1,73 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:webrtc_data_channel/webrtc_data_channel.dart';
 
-void main() => runApp(new MyApp());
+import 'chat_room.dart';
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => new _MyAppState();
+void main() {
+  runApp(new MaterialApp(
+    home: new HomePage(),
+  ));
 }
 
-class _MyAppState extends State<MyApp> {
-  WebrtcDataChannel _dataChannel = new WebrtcDataChannel();
-  StreamSubscription<String> _receivedMessages;
-
-  List<String> _messages = [];
-
-  int _count = 0;
-
+class HomePage extends StatefulWidget {
   @override
-  initState() {
-    super.initState();
-
-    _dataChannel.connect('<url>', '654351');
-
-    _receivedMessages = _dataChannel.listenMessages().listen((String message) {
-      _messages.add(message);
-      setState(() {});
-    });
-
-    new Timer.periodic(const Duration(seconds: 5),
-        (Timer timer) => _dataChannel.sendMessage('message ${_count++}'));
+  HomePageState createState() {
+    return new HomePageState();
   }
+}
 
-  String _getMessages() {
-    String text = '';
-    for (String message in _messages) {
-      text += message + '\n';
+class HomePageState extends State<HomePage> {
+  // https://appr.tc
+  final TextEditingController _roomUrlController = new TextEditingController();
+  final TextEditingController _roomIdController = new TextEditingController();
+
+  BuildContext _scaffoldContext;
+
+  _startChat(BuildContext context) {
+    if (_roomUrlController.text.isNotEmpty &&
+        _roomIdController.text.isNotEmpty) {
+      Navigator.push(
+          context,
+          new MaterialPageRoute(
+              builder: (context) => new ChatRoom(
+                  _roomUrlController.text, _roomIdController.text)));
+    } else {
+      Scaffold.of(_scaffoldContext).showSnackBar(
+          new SnackBar(content: new Text('Please set room url and id')));
     }
-    return text;
   }
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      home: new Scaffold(
-        appBar: new AppBar(
-          title: new Text('Plugin example app'),
-        ),
-        body: new Center(
-          child: new Text(_getMessages()),
-        ),
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('WebRTC DataChannel Chat'),
       ),
+      body: new Builder(builder: (BuildContext context) {
+        _scaffoldContext = context;
+        return new Column(
+          children: [
+            new Container(
+              padding: new EdgeInsets.fromLTRB(30.0, 30.0, 30.0, 0.0),
+              child: new TextField(
+                autofocus: true,
+                controller: _roomUrlController,
+                decoration: new InputDecoration(hintText: 'Type room url'),
+              ),
+            ),
+            new Container(
+              padding: new EdgeInsets.all(30.0),
+              child: new TextField(
+                controller: _roomIdController,
+                decoration: new InputDecoration(hintText: 'Type room id'),
+              ),
+            ),
+            new RaisedButton(
+              child: new Text('CHAT'),
+              onPressed: () => _startChat(context),
+            ),
+          ],
+        );
+      }),
     );
   }
 }

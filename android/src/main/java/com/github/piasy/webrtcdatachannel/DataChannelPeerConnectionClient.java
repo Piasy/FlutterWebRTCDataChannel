@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.appspot.apprtc.AppRTCClient;
-import org.appspot.apprtc.PeerConnectionClient;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
@@ -18,6 +17,7 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
+import org.webrtc.StatsReport;
 
 /**
  * Created by Piasy{github.com/Piasy} on 14/08/2017.
@@ -31,6 +31,7 @@ public class DataChannelPeerConnectionClient
 
     private Events mEvents;
     private boolean mIsInitiator;
+    private boolean mErrorHappened;
     private LinkedList<IceCandidate> mQueuedRemoteCandidates;
 
     private PeerConnectionFactory mPeerConnectionFactory;
@@ -110,9 +111,11 @@ public class DataChannelPeerConnectionClient
             mPeerConnectionFactory.dispose();
             mPeerConnectionFactory = null;
         }
+        if (mEvents != null) {
+            mEvents.onPeerConnectionClosed();
+            mEvents = null;
+        }
         Logging.d(TAG, "Closing peer connection done.");
-        mEvents.onPeerConnectionClosed();
-        mEvents = null;
     }
 
     private void createPcFactoryInternal() {
@@ -156,9 +159,11 @@ public class DataChannelPeerConnectionClient
     }
 
     private void sendMessageInternal(String message) {
-        byte[] msg = message.getBytes();
-        DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(msg), false);
-        mDataChannel.send(buffer);
+        if (mDataChannel != null) {
+            byte[] msg = message.getBytes();
+            DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(msg), false);
+            mDataChannel.send(buffer);
+        }
     }
 
     private void drainIceCandidates() {
@@ -179,6 +184,15 @@ public class DataChannelPeerConnectionClient
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState newState) {
         Logging.d(TAG, "onIceConnectionChange " + newState);
+        mExecutor.execute(() -> {
+            if (newState == PeerConnection.IceConnectionState.CONNECTED) {
+                mEvents.onIceConnected();
+            } else if (newState == PeerConnection.IceConnectionState.DISCONNECTED) {
+                mEvents.onIceDisconnected();
+            } else if (newState == PeerConnection.IceConnectionState.FAILED) {
+                reportError("ICE connection failed.");
+            }
+        });
     }
 
     @Override
@@ -200,6 +214,7 @@ public class DataChannelPeerConnectionClient
     @Override
     public void onIceCandidatesRemoved(IceCandidate[] candidates) {
         Logging.d(TAG, "onIceCandidatesRemoved " + Arrays.toString(candidates));
+        mEvents.onIceCandidatesRemoved(candidates);
     }
 
     @Override
@@ -229,12 +244,12 @@ public class DataChannelPeerConnectionClient
 
     @Override
     public void onBufferedAmountChange(long previousAmount) {
-        Logging.d(TAG, "onBufferedAmountChange");
+        Logging.d(TAG, "onDataChannelBufferedAmountChange");
     }
 
     @Override
     public void onStateChange() {
-        Logging.d(TAG, "onStateChange");
+        Logging.d(TAG, "onDataChannelStateChange");
     }
 
     @Override
@@ -243,7 +258,6 @@ public class DataChannelPeerConnectionClient
         final byte[] bytes = new byte[data.capacity()];
         data.get(bytes);
         String msg = new String(bytes);
-        Logging.d(TAG, "onMessage " + msg);
         mEvents.onMessage(msg);
     }
 
@@ -252,7 +266,6 @@ public class DataChannelPeerConnectionClient
         Logging.d(TAG, "onCreateSuccess " + sdp);
         mExecutor.execute(() -> {
             mLocalSdp = sdp;
-            Logging.d(TAG, "setLocalDescription " + sdp);
             mPeerConnection.setLocalDescription(DataChannelPeerConnectionClient.this, sdp);
         });
     }
@@ -278,14 +291,68 @@ public class DataChannelPeerConnectionClient
     }
 
     @Override
-    public void onCreateFailure(String error) {
+    public void onCreateFailure(final String error) {
+        reportError("createSDP error: " + error);
     }
 
     @Override
-    public void onSetFailure(String error) {
+    public void onSetFailure(final String error) {
+        reportError("setSDP error: " + error);
     }
 
-    public interface Events extends PeerConnectionClient.PeerConnectionEvents {
+    private void reportError(final String errorMessage) {
+        Logging.e(TAG, "PeerConnection error: " + errorMessage);
+        mExecutor.execute(() -> {
+            if (!mErrorHappened) {
+                mEvents.onPeerConnectionError(errorMessage);
+                mErrorHappened = true;
+            }
+        });
+    }
+
+    public interface Events {
+        /**
+         * Callback fired once local SDP is created and set.
+         */
+        void onLocalDescription(final SessionDescription sdp);
+
+        /**
+         * Callback fired once local Ice candidate is generated.
+         */
+        void onIceCandidate(final IceCandidate candidate);
+
+        /**
+         * Callback fired once local ICE candidates are removed.
+         */
+        void onIceCandidatesRemoved(final IceCandidate[] candidates);
+
+        /**
+         * Callback fired once connection is established (IceConnectionState is
+         * CONNECTED).
+         */
+        void onIceConnected();
+
+        /**
+         * Callback fired once connection is closed (IceConnectionState is
+         * DISCONNECTED).
+         */
+        void onIceDisconnected();
+
+        /**
+         * Callback fired once peer connection is closed.
+         */
+        void onPeerConnectionClosed();
+
+        /**
+         * Callback fired once peer connection statistics is ready.
+         */
+        void onPeerConnectionStatsReady(final StatsReport[] reports);
+
+        /**
+         * Callback fired once peer connection error happened.
+         */
+        void onPeerConnectionError(final String description);
+
         void onMessage(String message);
     }
 }
