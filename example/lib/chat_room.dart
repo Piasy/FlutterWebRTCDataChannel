@@ -31,7 +31,7 @@ class _ChatRoomState extends State<ChatRoom> {
   bool _iceConnected = false;
   List<ChatMessage> _messages = [];
 
-  WebrtcDataChannel _dataChannel = new WebrtcDataChannel();
+  WebRTCDataChannel _dataChannel = new WebRTCDataChannel();
   StreamSubscription<String> _receivedMessages;
   StreamSubscription<int> _signalingState;
   StreamSubscription<int> _iceState;
@@ -48,7 +48,7 @@ class _ChatRoomState extends State<ChatRoom> {
         onError: _onError);
 
     _signalingState = _dataChannel.listenSignalingState().listen((int state) {
-      if (state == WebrtcDataChannel.SIGNALING_STATE_DISCONNECTED) {
+      if (state == WebRTCDataChannel.SIGNALING_STATE_DISCONNECTED) {
         if (!_activeClosing) {
           _disconnect();
           Navigator.pop(_context);
@@ -58,12 +58,12 @@ class _ChatRoomState extends State<ChatRoom> {
 
     _iceState = _dataChannel.listenIceState().listen((int state) {
       switch (state) {
-        case WebrtcDataChannel.ICE_STATE_CONNECTED:
+        case WebRTCDataChannel.ICE_STATE_CONNECTED:
           setState(() {
             _iceConnected = true;
           });
           break;
-        case WebrtcDataChannel.ICE_STATE_DISCONNECTED:
+        case WebRTCDataChannel.ICE_STATE_DISCONNECTED:
           setState(() {
             _iceConnected = false;
           });

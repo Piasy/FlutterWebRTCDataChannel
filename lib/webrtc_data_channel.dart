@@ -17,21 +17,27 @@ const int EVENT_TYPE_MESSAGE = 3;
 const MethodChannel _methodChannel = const MethodChannel(METHOD_CHANNEL_NAME);
 const EventChannel _eventChannel = const EventChannel(EVENT_CHANNEL_NAME);
 
-class WebrtcDataChannel {
+class WebRTCDataChannel {
+  /// disconnected from room server and signal server
   static const int SIGNALING_STATE_DISCONNECTED = 0;
+  /// connected to room server and signal server
   static const int SIGNALING_STATE_CONNECTED = 2;
 
+  /// ICE connection disconnected
   static const int ICE_STATE_DISCONNECTED = 5;
+  /// ICE connection connected
   static const int ICE_STATE_CONNECTED = 2;
 
   Stream<dynamic> _receivedEvents;
 
+  /// connect to room with [roomUrl] and [roomId]
   Future<int> connect(String roomUrl, String roomId) =>
       _methodChannel.invokeMethod(METHOD_CONNECT_TO_ROOM, {
         'roomUrl': roomUrl,
         'roomId': roomId
       }).then<int>((dynamic result) => result);
 
+  /// listening for signaling state
   Stream<int> listenSignalingState() {
     if (_receivedEvents == null) {
       _receivedEvents = _eventChannel.receiveBroadcastStream();
@@ -43,6 +49,7 @@ class WebrtcDataChannel {
         .map<int>((Map event) => event['state']);
   }
 
+  /// listening for ICE connection state
   Stream<int> listenIceState() {
     if (_receivedEvents == null) {
       _receivedEvents = _eventChannel.receiveBroadcastStream();
@@ -54,6 +61,7 @@ class WebrtcDataChannel {
         .map<int>((Map event) => event['state']);
   }
 
+  /// listening for received messages
   Stream<String> listenMessages() {
     if (_receivedEvents == null) {
       _receivedEvents = _eventChannel.receiveBroadcastStream();
@@ -65,10 +73,12 @@ class WebrtcDataChannel {
         .map<String>((Map event) => event['message']);
   }
 
+  /// send message
   Future<int> sendMessage(String message) => _methodChannel.invokeMethod(
       METHOD_SEND_MESSAGE,
       {'message': message}).then<int>((dynamic result) => result);
 
+  /// disconnect from room
   Future<int> disconnect() => _methodChannel
       .invokeMethod(METHOD_DISCONNECT)
       .then<int>((dynamic result) => result);
