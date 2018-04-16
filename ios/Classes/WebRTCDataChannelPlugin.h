@@ -27,5 +27,5 @@
 
 #import <Flutter/Flutter.h>
 
-@interface WebrtcDataChannelPlugin : NSObject<FlutterPlugin>
+@interface WebRTCDataChannelPlugin : NSObject<FlutterPlugin>
 @end

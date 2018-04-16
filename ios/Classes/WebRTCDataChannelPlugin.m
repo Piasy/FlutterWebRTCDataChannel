@@ -26,7 +26,7 @@
 
 
 #import "WebRTC/RTCLogging.h"
-#import "WebrtcDataChannelPlugin.h"
+#import "WebRTCDataChannelPlugin.h"
 
 #import "WDCPAppClient.h"
 
@@ -42,17 +42,17 @@ static int const kEventTypeSignalingState = 1;
 static int const kEventTypeIceState = 2;
 static int const kEventTypeMessage = 3;
 
-@interface WebrtcDataChannelPlugin ()<FlutterStreamHandler,
+@interface WebRTCDataChannelPlugin ()<FlutterStreamHandler,
                                       WDCPAppClientDelegate>
 @end
 
-@implementation WebrtcDataChannelPlugin {
+@implementation WebRTCDataChannelPlugin {
     WDCPAppClient* _client;
     volatile FlutterEventSink _eventSink;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-    WebrtcDataChannelPlugin* plugin = [[WebrtcDataChannelPlugin alloc] init];
+    WebRTCDataChannelPlugin* plugin = [[WebRTCDataChannelPlugin alloc] init];
 
     FlutterMethodChannel* methodChannel =
         [FlutterMethodChannel methodChannelWithName:kWDCPMethodChannelName

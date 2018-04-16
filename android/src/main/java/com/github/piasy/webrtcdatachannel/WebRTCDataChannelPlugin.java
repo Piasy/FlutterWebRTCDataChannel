@@ -18,7 +18,7 @@ import org.webrtc.StatsReport;
 /**
  * WebrtcDataChannelPlugin
  */
-public class WebrtcDataChannelPlugin
+public class WebRTCDataChannelPlugin
         implements MethodCallHandler, EventChannel.StreamHandler, AppRTCClient.SignalingEvents,
         DataChannelPeerConnectionClient.Events {
 
@@ -44,7 +44,7 @@ public class WebrtcDataChannelPlugin
 
     private volatile EventChannel.EventSink mEventSink;
 
-    public WebrtcDataChannelPlugin(final Registrar registrar) {
+    public WebRTCDataChannelPlugin(final Registrar registrar) {
         mRegistrar = registrar;
     }
 
@@ -52,7 +52,7 @@ public class WebrtcDataChannelPlugin
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
-        WebrtcDataChannelPlugin plugin = new WebrtcDataChannelPlugin(registrar);
+        WebRTCDataChannelPlugin plugin = new WebRTCDataChannelPlugin(registrar);
         new MethodChannel(registrar.messenger(), METHOD_CHANNEL_NAME)
                 .setMethodCallHandler(plugin);
         new EventChannel(registrar.messenger(), EVENT_CHANNEL_NAME)
